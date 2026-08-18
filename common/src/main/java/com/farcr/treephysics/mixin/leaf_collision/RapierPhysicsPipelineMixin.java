@@ -1,5 +1,6 @@
 package com.farcr.treephysics.mixin.leaf_collision;
 
+import com.farcr.treephysics.api.util.TreeUtil;
 import com.farcr.treephysics.index.TreePhysicsConfig;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -10,7 +11,6 @@ import dev.ryanhcode.sable.physics.impl.rapier.collider.RapierVoxelColliderBaker
 import dev.ryanhcode.sable.physics.impl.rapier.collider.RapierVoxelColliderData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -57,6 +57,6 @@ public class RapierPhysicsPipelineMixin {
 
     @Unique
     private boolean treephysics$shouldHaveCollision(BlockState state, BlockPos pos) {
-        return state.getBlock() instanceof LeavesBlock && !TreePhysicsConfig.STATIC_LEAF_COLLISION.get() && Sable.HELPER.getContaining(this.level, pos) == null;
+        return TreeUtil.isLeaf(state) && !TreePhysicsConfig.STATIC_LEAF_COLLISION.get() && Sable.HELPER.getContaining(this.level, pos) == null;
     }
 }
