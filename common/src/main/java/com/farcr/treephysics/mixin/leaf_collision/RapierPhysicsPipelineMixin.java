@@ -12,6 +12,7 @@ import dev.ryanhcode.sable.physics.impl.rapier.collider.RapierVoxelColliderBaker
 import dev.ryanhcode.sable.physics.impl.rapier.collider.RapierVoxelColliderData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,42 +31,39 @@ public class RapierPhysicsPipelineMixin {
         @At(value = "INVOKE", target = "Ldev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderBakery;getPhysicsDataForBlock(Lnet/minecraft/world/level/block/state/BlockState;)Ldev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderData;", ordinal = 0)
     )
     private RapierVoxelColliderData treephysics$handleBlockChange1(RapierVoxelColliderBakery instance, BlockState state, Operation<RapierVoxelColliderData> original, @Local(name = "pos") BlockPos pos) {
-        if(treephysics$shouldSkipStaticCollider(state, pos)) {
-            return null;
-        }
-        return original.call(instance, state);
+        return treephysics$getSafeColliderData(instance, state, original, pos);
     }
 
     @WrapOperation(method = "handleBlockChange", at =
         @At(value = "INVOKE", target = "Ldev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderBakery;getPhysicsDataForBlock(Lnet/minecraft/world/level/block/state/BlockState;)Ldev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderData;", ordinal = 1)
     )
     private RapierVoxelColliderData treephysics$handleBlockChange2(RapierVoxelColliderBakery instance, BlockState state, Operation<RapierVoxelColliderData> original, @Local(name = "globalBlockPos") BlockPos globalBlockPos) {
-        if(treephysics$shouldSkipStaticCollider(state, globalBlockPos)) {
-            return null;
-        }
-        return original.call(instance, state);
+        return treephysics$getSafeColliderData(instance, state, original, globalBlockPos);
     }
 
     @WrapOperation(method = "handleChunkSectionAddition", at =
         @At(value = "INVOKE", target = "Ldev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderBakery;getPhysicsDataForBlock(Lnet/minecraft/world/level/block/state/BlockState;)Ldev/ryanhcode/sable/physics/impl/rapier/collider/RapierVoxelColliderData;")
     )
     private RapierVoxelColliderData treephysics$handleChunkSectionAddition(RapierVoxelColliderBakery instance, BlockState state, Operation<RapierVoxelColliderData> original, @Local(name = "globalPos") BlockPos globalPos) {
-        if(treephysics$shouldSkipStaticCollider(state, globalPos)) {
+        return treephysics$getSafeColliderData(instance, state, original, globalPos);
+    }
+
+    @Unique
+    private RapierVoxelColliderData treephysics$getSafeColliderData(RapierVoxelColliderBakery instance, BlockState state, Operation<RapierVoxelColliderData> original, BlockPos pos) {
+        boolean leafWithoutStaticCollision = TreeUtil.isLeaf(state) && !TreePhysicsConfig.STATIC_LEAF_COLLISION.get();
+        boolean inSubLevel = Sable.HELPER.getContaining(this.level, pos) != null;
+
+        if(leafWithoutStaticCollision) {
+            if(!inSubLevel) {
+                return null;
+            }
+            return original.call(instance, Blocks.OAK_LEAVES.defaultBlockState());
+        }
+
+        if(!inSubLevel && state.is(TreePhysicsTags.FALLS_FROM_TREES)) {
             return null;
         }
+
         return original.call(instance, state);
-    }
-
-    @Unique
-    private boolean treephysics$shouldSkipStaticCollider(BlockState state, BlockPos pos) {
-        if(Sable.HELPER.getContaining(this.level, pos) != null) {
-            return false;
-        }
-        return treephysics$shouldSkipStaticLeafCollider(state) || state.is(TreePhysicsTags.FALLS_FROM_TREES);
-    }
-
-    @Unique
-    private boolean treephysics$shouldSkipStaticLeafCollider(BlockState state) {
-        return TreeUtil.isLeaf(state) && !TreePhysicsConfig.STATIC_LEAF_COLLISION.get();
     }
 }
