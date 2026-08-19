@@ -5,6 +5,7 @@ import com.farcr.treephysics.index.TreePhysicsConfig;
 import com.farcr.treephysics.mixin.accessors.LevelAcceleratorAccessor;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import dev.ryanhcode.sable.Sable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -41,7 +42,7 @@ public class BlockCollisionsMixin {
             && TreePhysicsConfig.LEAF_WALKING_BEHAVIOR.get().allowSubLevel()
             && TreeUtil.isLeaf(instance)
             && blockGetter instanceof LevelAcceleratorAccessor accessor
-            && dev.ryanhcode.sable.Sable.HELPER.getContaining(accessor.getLevel(), pos) != null) {
+            && Sable.HELPER.getContaining(accessor.getLevel(), pos) != null) {
             return Shapes.empty();
         }
         return original.call(instance, blockGetter, pos, collisionContext);
