@@ -10,6 +10,7 @@ import dev.ryanhcode.sable.physics.impl.rapier.RapierPhysicsPipeline;
 import dev.ryanhcode.sable.physics.impl.rapier.collider.RapierVoxelColliderBakery;
 import dev.ryanhcode.sable.physics.impl.rapier.collider.RapierVoxelColliderData;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
