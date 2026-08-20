@@ -1,8 +1,6 @@
 package com.farcr.treephysics.mixin.leaf_collision;
 
-import com.farcr.treephysics.api.util.TreeUtil;
 import com.farcr.treephysics.index.TreePhysicsConfig;
-import com.farcr.treephysics.index.TreePhysicsTags;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -13,6 +11,7 @@ import dev.ryanhcode.sable.physics.impl.rapier.collider.RapierVoxelColliderData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -50,7 +49,7 @@ public class RapierPhysicsPipelineMixin {
 
     @Unique
     private RapierVoxelColliderData treephysics$getSafeColliderData(RapierVoxelColliderBakery instance, BlockState state, Operation<RapierVoxelColliderData> original, BlockPos pos) {
-        boolean leafWithoutStaticCollision = TreeUtil.isLeaf(state) && !TreePhysicsConfig.STATIC_LEAF_COLLISION.get();
+        boolean leafWithoutStaticCollision = state.getBlock() instanceof LeavesBlock && !TreePhysicsConfig.STATIC_LEAF_COLLISION.get();
         boolean inSubLevel = Sable.HELPER.getContaining(this.level, pos) != null;
 
         if(leafWithoutStaticCollision) {
@@ -58,10 +57,6 @@ public class RapierPhysicsPipelineMixin {
                 return null;
             }
             return original.call(instance, Blocks.OAK_LEAVES.defaultBlockState());
-        }
-
-        if(!inSubLevel && state.is(TreePhysicsTags.FALLS_FROM_TREES)) {
-            return null;
         }
 
         return original.call(instance, state);
